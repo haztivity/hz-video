@@ -41,6 +41,9 @@ export class HzVideoResource extends ResourceController {
         this._options = this._$.extend(true,{},HzVideoResource.DEFAULTS,options);
         this._config = config;
         let plyrOptions  = this._dataOptions.getDataOptions(this._$element, "plyr");
+        if(this._options.optional){
+            this._markAsCompleted();
+        }
         this._options.plyr = this._$.extend(true,{}, HzVideoResource.DEFAULTS_PLYR, plyrOptions);
         this._initVideo();
     }
