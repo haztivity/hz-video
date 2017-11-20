@@ -1,6 +1,6 @@
 {
   "name": "@haztivity/hz-video",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Haztivity wrapper for plyr",
   "main": "dist/HzVideo.js",
   "module": "dist/HzVideo.js",
