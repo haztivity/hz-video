@@ -11,7 +11,7 @@ import {
     NavigatorService,
     DataOptions
 } from "@haztivity/core";
-import * as plyr from "plyr";
+import * as Plyr from "plyr";
 @Resource(
     {
         name: "HzVideo",
@@ -48,7 +48,7 @@ export class HzVideoResource extends ResourceController {
         this._initVideo();
     }
     protected _initVideo(){
-        this._player = plyr.setup(this._$element.get(0),this._options.plyr)[0];
+        this._player = new Plyr(this._$element,this._options.plyr);
         this._assignEvents();
     }
     protected _assignEvents(){
