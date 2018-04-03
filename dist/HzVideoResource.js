@@ -55,14 +55,51 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this._player = new Plyr(this._$element, this._options.plyr);
             this._assignEvents();
         };
+        HzVideoResource.prototype._getEndMoment = function (offset) {
+            var result;
+            var time = parseFloat(offset);
+            if (!isNaN(time)) {
+                result = offset < 0 ? this._player.duration + offset : offset;
+            }
+            return result;
+        };
+        HzVideoResource.prototype._resolveEndOffset = function (offset) {
+            var result = false, time = this._getEndMoment(offset);
+            if ((typeof time).toLowerCase() == "number" && time > 0 && time < this._player.duration) {
+                result = true;
+                this._endTime = time;
+            }
+            return result;
+        };
+        HzVideoResource.prototype._assignEndEvent = function () {
+            if (this._options.endOffset && this._resolveEndOffset(this._options.endOffset)) {
+                this._player.off("timeupdate");
+                this._player.on("timeupdate", this._onTimeUpdate.bind(this));
+            }
+            else {
+                this._player.off("ended");
+                this._player.on("ended", this._onVideoEnd.bind(this));
+            }
+        };
+        HzVideoResource.prototype._onRateChange = function () {
+            this._assignEndEvent();
+        };
         HzVideoResource.prototype._assignEvents = function () {
             this._player.on("playing", this._onVideoPlay.bind(this));
-            this._player.on("ended", this._onVideoEnd.bind(this));
+            this._player.on("ratechange", this._onRateChange.bind(this));
         };
         HzVideoResource.prototype._onVideoPlay = function () {
             if (this.isDisabled()) {
                 this._player.stop();
                 this._player.restart();
+            }
+            else {
+                this._assignEndEvent();
+            }
+        };
+        HzVideoResource.prototype._onTimeUpdate = function () {
+            if (this._player.currentTime >= this._endTime) {
+                this._markAsCompleted();
             }
         };
         HzVideoResource.prototype._onVideoEnd = function () {

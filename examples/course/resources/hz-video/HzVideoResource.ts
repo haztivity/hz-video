@@ -29,6 +29,7 @@ export class HzVideoResource extends ResourceController {
     protected static readonly PREFIX = "hz-video";
     protected static readonly CLASS_COMPONENT = HzVideoResource.PREFIX;
     protected _player;
+    protected _endTime:number;
     protected static readonly DEFAULTS_PLYR = {
     };
     protected static readonly DEFAULTS = {
@@ -51,14 +52,50 @@ export class HzVideoResource extends ResourceController {
         this._player = new Plyr(this._$element,this._options.plyr);
         this._assignEvents();
     }
+    protected _getEndMoment(offset){
+        let result:number;
+        const time = parseFloat(offset);
+        if(!isNaN(time)){
+            result = offset < 0 ? this._player.duration + offset : offset ;
+        }
+        return result;
+    }
+    protected _resolveEndOffset(offset){
+        let result = false,
+            time = this._getEndMoment(offset);
+        if((typeof time).toLowerCase() == "number" && time > 0 && time < this._player.duration){
+            result = true;
+            this._endTime = time;
+        }
+        return result;
+    }
+    protected _assignEndEvent(){
+        if(this._options.endOffset && this._resolveEndOffset(this._options.endOffset)) {
+            this._player.off("timeupdate");
+            this._player.on("timeupdate", this._onTimeUpdate.bind(this));
+        }else {
+            this._player.off("ended");
+            this._player.on("ended", this._onVideoEnd.bind(this));
+        }
+    }
+    protected _onRateChange(){
+        this._assignEndEvent();
+    }
     protected _assignEvents(){
         this._player.on("playing",this._onVideoPlay.bind(this));
-        this._player.on("ended",this._onVideoEnd.bind(this));
+        this._player.on("ratechange",this._onRateChange.bind(this));
     }
     protected _onVideoPlay(){
         if(this.isDisabled()){
             this._player.stop();
             this._player.restart();
+        }else{
+            this._assignEndEvent();
+        }
+    }
+    protected _onTimeUpdate(){
+        if(this._player.currentTime >= this._endTime){
+            this._markAsCompleted();
         }
     }
     protected _onVideoEnd(){
